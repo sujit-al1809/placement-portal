@@ -5,6 +5,7 @@ from flask_security import auth_required, current_user
 
 from extensions import db
 from models import Job
+from services.matching import calculate_match_score
 from tasks import notify_matching_students
 from utils import require_roles
 
@@ -105,7 +106,8 @@ def apply_to_job(job_id):
     if existing:
         return jsonify({"error": "You have already applied for this job"}), 409
 
-    application = Application(student_id=student_profile.id, job_id=job.id)
+    match_score, _ = calculate_match_score(student_profile.skills, job.description)
+    application = Application(student_id=student_profile.id, job_id=job.id, match_score=match_score)
     db.session.add(application)
     db.session.commit()
     return jsonify({"message": "Application submitted", "application": application.to_dict()}), 201

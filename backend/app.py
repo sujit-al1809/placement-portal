@@ -11,6 +11,7 @@ from tasks import init_celery
 
 
 security = Security()
+celery = None
 
 
 def ensure_roles():
@@ -26,6 +27,8 @@ def ensure_roles():
 
 
 def create_app():
+    global celery
+
     app = Flask(__name__)
     app.config.from_object(Config)
 
@@ -35,7 +38,7 @@ def create_app():
 
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security.init_app(app, user_datastore)
-    init_celery(app)
+    celery = init_celery(app)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(profile_bp)

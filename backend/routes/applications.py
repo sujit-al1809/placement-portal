@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_security import auth_required, current_user
 
 from extensions import db
-from models import Application, Job
+from models import Application, Company, Job
 from services.matching import calculate_match_score
 from utils import require_roles
 
@@ -17,7 +17,11 @@ def list_applications():
         student_profile = current_user.student_profile
         query = Application.query.filter_by(student_id=student_profile.id) if student_profile else Application.query.filter_by(id=-1)
     elif current_user.role == "CompanyHR":
-        query = Application.query.join(Job).join(Job.company).filter(Job.company.has(hr_user_id=current_user.id))
+        query = (
+            Application.query.join(Application.job)
+            .join(Job.company)
+            .filter(Company.hr_user_id == current_user.id)
+        )
     else:
         query = Application.query
 
